@@ -1,28 +1,39 @@
 def tksleep(seconds):
     from PIL import ImageTk, Image
     import tkinter as tk
+    
     ms = int(seconds * 1000)
-    root = root('sleep')
+    root = tk._get_default_root('sleep')
     var = tk.IntVar(root)
     root.after(ms, var.set, 1)
     root.wait_variable(var)
+    
+def get_screen_size():
+  scr_width = root.winfo_screenwidth()
+  scr_height = root.winfo_screenheight()
+  print("Screen width:", scr_width, "Screen height:", scr_height)
+  return (scr_width, scr_height)
+
 
 def Calibrate():
     from PIL import ImageTk, Image
     import tkinter as tk
-    import main
-    #ctk.set_appearance_mode('light')
+    import Tracker
+    import ctypes
+    ctypes.windll.shcore.SetProcessDpiAwareness(2)
     global root
     root = tk.Tk()
+    scr_width, scr_height = get_screen_size()
     root.title("EyeMouse calibration")
     root.overrideredirect(True)
+    print("{0}x{1}+0+0".format(scr_width, scr_height))
     root.geometry("{0}x{1}+0+0".format(root.winfo_screenwidth(), root.winfo_screenheight()))
 
-    Instruction_label = tk.Label(root, text="Follow the Target with your eyes\n DO NOT move while using the app", font=("Arial", 40))
-    Instruction_label.place(x=(root.winfo_screenwidth()/2 - 400), y = (root.winfo_screenheight() / 2 - 40), in_=root)
+    Instruction_label = tk.Label(root, text="Follow the Target with your eyes\n DO NOT reposition yourself while using the app", font=("Arial", 40))
+    Instruction_label.place(x=(root.winfo_screenwidth() // 2 - 600), y=(root.winfo_screenheight() // 2 - 100), in_=root)
 
-    tksleep(2) #stop for 2 econds
-    
+    tksleep(6)  # Stop for 2 seconds
+
     Instruction_label.destroy()
 
     image_path = "Target.png"
@@ -34,14 +45,32 @@ def Calibrate():
     # Create a PhotoImage from the resized image
     photo_img = ImageTk.PhotoImage(resized_img)
 
-
     image_label = tk.Label(root, image=photo_img)
-    image_label.place(x=((root.winfo_screenwidth() / 2) - (size / 2)), y=(size / 2), in_=root)
+    image_label.place(x=(root.winfo_screenwidth() // 2 - size // 2), in_=root)
 
-    tksleep(2.5)
-    #main.store_Reading()
-    tksleep(2.5)
+    tksleep(2)
+    Tracker.store_Reading()
+    tksleep(2)
+    
+    image_label.place(x=(root.winfo_screenwidth() // 2 - size // 2), y=(root.winfo_screenheight() - size), in_=root)
+    
+    tksleep(2)
+    Tracker.store_Reading()
+    tksleep(2)
+    
+    image_label.place(x=(scr_width - size), y=(scr_height // 2 - size // 2), in_=root)
+    
+    tksleep(2)
+    Tracker.store_Reading()
+    tksleep(2)
+    
+    image_label.place(x=0, y=(scr_height // 2 - size // 2), in_=root)
+    
+    tksleep(2)
+    Tracker.store_Reading()
+    tksleep(2)
     
     root.destroy()
-    root.after()
+
+
 #Calibrate()
