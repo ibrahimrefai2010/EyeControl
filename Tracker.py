@@ -14,14 +14,14 @@ def store_Reading():
     global reading_y_min
     global x
     global y
-    if reading_x_max == 300:
+    if reading_y_min == 300:
+        reading_y_min = y
+    elif reading_y_max == 300:
+        reading_y_max = y
+    elif reading_x_max == 300:
         reading_x_max = x
     elif reading_x_min == 300:
         reading_x_min = x
-    elif reading_y_max == 300:
-        reading_y_max = y
-    elif reading_y_min == 300:
-        reading_y_min = y
     #print("Reading Stored")
     #print(reading_x_max,  reading_x_min, reading_y_max, reading_y_min, sep="\n")
 
@@ -29,6 +29,7 @@ def run():
     import cv2
     import mediapipe as mp
     import pyautogui
+    import ctypes
     
     
     cam = cv2.VideoCapture(0)
@@ -45,16 +46,32 @@ def run():
             landmarks = [landmark_points[0].landmark[443], landmark_points[0].landmark[474]]
             global x
             global y
-            x = (landmarks[0].x - landmarks[1].x)
-            y = (landmarks[0].x - landmarks[1].x)
-            x_range = reading_x_min - reading_x_max
-            x_distance = x -reading_x_min
-            x_percentage = (x_distance - x_range)
-            y_range = reading_y_min - reading_y_max
-            y_distance = y -reading_y_min
-            y_percentage = (y_distance - y_range)
-            #print(f"x: {x}\ny: {y}")
-            print(y_percentage, x_percentage, sep="\n")
+            x = (landmarks[1].x - landmarks[0].x)
+            y = (landmarks[1].y - landmarks[0].y)
+            print(x)
+            print(y)
+            try:
+                x_range = reading_x_max - reading_x_min
+                x_distance = x - reading_x_min
+                x_percentage = (x_distance / x_range)
+                y_range = reading_y_max - reading_y_min
+                y_distance = y - reading_y_min
+                y_percentage = (y_distance / y_range)
+                x_pos = (screen_w * x_percentage)
+                y_pos = (screen_h * y_percentage)
+                #y_pos = 600
+                pyautogui.FAILSAFE = False
+                pyautogui.moveTo(x_pos, y_pos)
+                #print(f"x:{x_percentage * 100}\ny:{y_percentage * 100}")
+                #print(f"x: {x}   y: {y}")
+                #print(y_percentage, x_percentage, sep="\n")
+                for landmark in landmarks:
+                    x = int(landmark.x * frame_w)
+                    y = int(landmark.y * frame_h)
+                    cv2.circle(frame, (x, y), 3, (0, 255, 255))
+            except ZeroDivisionError:
+                pass
+
         '''
             left = [landmarks[145], landmarks[159]]
             for landmark in left:
