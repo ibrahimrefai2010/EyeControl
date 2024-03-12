@@ -6,6 +6,12 @@ reading_x_max = 300
 reading_x_min = 300
 reading_y_max = 300
 reading_y_min = 300
+postion = 0
+
+def clamp(value, min_value, max_value):
+    return max(min(value, max_value), min_value)
+
+
 
 def store_Reading():
     global reading_x_max
@@ -22,26 +28,25 @@ def store_Reading():
         reading_x_max = x
     elif reading_x_min == 300:
         reading_x_min = x
-    #print("Reading Stored")
-    #print(reading_x_max,  reading_x_min, reading_y_max, reading_y_min, sep="\n")
 
 def run():
+    import threading
     import cv2
     import mediapipe as mp
     import pyautogui
     import ctypes
     
-    global position
+    global screen_h, screen_w, landmark_points, frame_h, frame_w, frame, Keyboard, KeyboardStr
     postion = 0
     KeyboardStr = "abcdefghijklnmopqrstuvwxyz0123456789"
     Keyboard = []
     for Char in KeyboardStr:
         Keyboard.append(Char)
-        print(Char)
-    print(Keyboard, "\n", Keyboard[postion])
     
     cam = cv2.VideoCapture(0)
     face_mesh = mp.solutions.face_mesh.FaceMesh(refine_landmarks=True)
+    KeyboardThread = threading.Thread(target=StartKeyboard)
+    KeyboardThread.start()  
     screen_w, screen_h = pyautogui.size()
     while True:
         _, frame = cam.read()
@@ -50,14 +55,13 @@ def run():
         output = face_mesh.process(rgb_frame)
         landmark_points = output.multi_face_landmarks
         frame_h, frame_w, _ = frame.shape
+        
         if landmark_points:
-            landmarks = [landmark_points[0].landmark[450], landmark_points[0].landmark[477]]
+            landmarks = [landmark_points[0].landmark[340], landmark_points[0].landmark[473]]
             global x
             global y
             x = (landmarks[1].x - landmarks[0].x)
             y = (landmarks[1].y - landmarks[0].y)
-            print(x)
-            print(y)
             try:
                 x_range = reading_x_max - reading_x_min
                 x_distance = x - reading_x_min
@@ -73,37 +77,57 @@ def run():
                 
                 pyautogui.FAILSAFE = False
                 pyautogui.moveTo(x_pos, y_pos)
-                #print(f"x:{x_percentage * 100}\ny:{y_percentage * 100}")
-                #print(f"x: {x}   y: {y}")
-                #print(y_percentage, x_percentage, sep="\n")
-                '''
+                
                 for landmark in landmarks:
                     x = int(landmark.x * frame_w)
                     y = int(landmark.y * frame_h)
                     cv2.circle(frame, (x, y), 3, (0, 255, 255))
-                '''
+                
             except ZeroDivisionError:
-                print(Exception)
-
-            CurrentChar = ''
-            left = [landmark_points[0].landmark[145], landmark_points[0].landmark[159]]
-            for landmark in left:
-                x = int(landmark.x * frame_w)
-                y = int(landmark.y * frame_h)
-                cv2.circle(frame, (x, y), 3, (0, 255, 255))
-            if (left[0].y - left[1].y) < 0.004:
-                postion -= 1
-                Current_char = Keyboard[postion]
-                print(Current_char)
-            
-            right = [landmark_points[0].landmark[374], landmark_points[0].landmark[386]]
-            for landmark in right:
-                x = int(landmark.x * frame_w)
-                y = int(landmark.y * frame_h)
-                cv2.circle(frame, (x, y), 3, (0, 255, 255))
-            if (right[0].y - right[1].y) < 0.004:
-                postion += 1
-                Current_char = Keyboard[postion]
-                print(Current_char)
+                print("Zero Division")      
+                try:
+                    print(y_distance, y_range, x_distance, x_range)  
+                except Exception:
+                    pass
         cv2.imshow('Eye Controlled Mouse', frame)
         cv2.waitKey(1)
+
+
+def StartKeyboard():
+    import cv2
+    import mediapipe as mp
+    import pyautogui
+    import ctypes
+    while True:
+        CurrentChar = ''
+        isLeftEyeBlinking = False
+        isRightEyeBlinking = False
+        print(isRightEyeBlinking, isLeftEyeBlinking)
+        left = [landmark_points[0].landmark[145], landmark_points[0].landmark[159]]
+        for landmark in left:
+            x = int(landmark.x * frame_w)
+            y = int(landmark.y * frame_h)
+            cv2.circle(frame, (x, y), 3, (0, 255, 255))
+        if (left[0].y - left[1].y) < 0.004 and not isRightEyeBlinking:
+            isLeftEyeBlinking = True
+            postion = max(len(Keyboard), min((postion - 1), 0))
+            Current_char = Keyboard[postion]
+            print(Current_char)
+        elif(not isRightEyeBlinking):
+            isLeftEyeBlinking = False
+
+
+
+        right = [landmark_points[0].landmark[374], landmark_points[0].landmark[386]]
+        for landmark in right:
+            x = int(landmark.x * frame_w)
+            y = int(landmark.y * frame_h)
+            cv2.circle(frame, (x, y), 3, (0, 255, 255))
+        if (right[0].y - right[1].y) < 0.004 and not isLeftEyeBlinking:
+            isRightEyeBlinking = True
+            postion = clamp(postion + 1, 0, len(Keyboard) - 1)
+            print(postion)
+            Current_char = Keyboard[postion]
+            print(Current_char)
+        elif(not isLeftEyeBlinking):
+            isRightEyeBlinking = False
