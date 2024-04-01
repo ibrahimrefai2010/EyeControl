@@ -20,19 +20,20 @@ def Calibrate():
     import tkinter as tk
     import Tracker
     import ctypes
+    import threading
+    import keyboardGUI
     ctypes.windll.shcore.SetProcessDpiAwareness(2)
     global root
     root = tk.Tk()
     scr_width, scr_height = get_screen_size()
     root.title("EyeMouse calibration")
     root.overrideredirect(True)
-    print("{0}x{1}+0+0".format(scr_width, scr_height))
     root.geometry("{0}x{1}+0+0".format(root.winfo_screenwidth(), root.winfo_screenheight()))
 
     Instruction_label = tk.Label(root, text="Follow the Target with your eyes\n DO NOT reposition yourself while using the app", font=("Arial", 40))
     Instruction_label.place(x=(root.winfo_screenwidth() // 2 - 600), y=(root.winfo_screenheight() // 2 - 100), in_=root)
 
-    tksleep(6)  # Stop for 2 seconds
+    tksleep(6)  # Stop for 6 seconds
 
     Instruction_label.destroy()
 
@@ -70,7 +71,14 @@ def Calibrate():
     Tracker.store_Reading()
     tksleep(1)
     
+    
+    
     root.destroy()
+    
+    KeyboardThread = threading.Thread(target=keyboardGUI.ShowKeyboard)
+    KeyboardThread.start()
+
+
 
 
 #Calibrate()
