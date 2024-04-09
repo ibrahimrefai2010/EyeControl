@@ -132,10 +132,13 @@ def StartBlinkKeyboard():
 def CharacterDown():
     postion = clamp(postion + 1, 0, len(Keyboard) - 1)
     CurrentChar = Keyboard[postion]
+    keyboardGUI.SetCurrentChar(postion)
     
 def CharacterUp():
     postion = clamp(postion - 1, 0, len(Keyboard) - 1)
     CurrentChar = Keyboard[postion]
+    keyboardGUI.SetCurrentChar(postion)
+    
 
 def UpdateEdgeKeyboard():
     global postion, trigger_x, invert_trigger_x
@@ -144,9 +147,7 @@ def UpdateEdgeKeyboard():
     if x > trigger_x:
         postion = clamp(postion + 1, 0, len(Keyboard) - 1)
         CurrentChar = Keyboard[postion]
-        print(CurrentChar)
     elif x < invert_trigger_x:
         postion = clamp(postion - 1, 0, len(Keyboard) - 1)
         CurrentChar = Keyboard[postion]
-        print(CurrentChar)
     

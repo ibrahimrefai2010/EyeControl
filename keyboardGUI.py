@@ -1,5 +1,5 @@
-def SetCurrentChar(position):
-    Char = position
+def SetCurrentChar(_position):
+    position = _position
     print(position)
 
 def ShowKeyboard():

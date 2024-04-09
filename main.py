@@ -3,8 +3,8 @@ import Calibration
 import threading
 
 
-CalibrationThread = threading.Thread(target=Calibration.Calibrate)
-CalibrationThread.start()
+GUIThread = threading.Thread(target=Calibration.Calibrate)
+GUIThread.start()
 
 
 
