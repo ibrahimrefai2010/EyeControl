@@ -1,41 +1,46 @@
-global y_pos, x_pos, counter, reading_y_min, reading_y_max, reading_x_min, reading_x_max
+import keyboardGUI
+import time
+global reading_x_max, reading_x_min, reading_y_max, reading_y_min
 reading_y_min = 1 #each one has a unique value to prevent zero division 
 reading_y_max = 2
-reading_x_max = 3 
-reading_x_min = 4
+reading_x_min = 3
+reading_x_max = 4
 postion = 0
-tracking_landmark_1 = 340
+Current_char = ''
+tracking_landmark_1 = 337
 tracking_landmark_2 = 473
-y_pos = 1
-x_pos = 1
-counter = 0
+trigger_x = 0
+invert_trigger_x = 0
+calibration = False
 
 def clamp(value, min_value, max_value):
     return max(min(value, max_value), min_value)
 
 
 
-def store_Reading():
-    global reading_x_max, reading_x_min, reading_y_max, reading_y_min, x_pos, y_pos, counter
-    print("\nstore reading called\n")
-    print(f"reading_y_min: {reading_y_min == 1} reading_y_max: {reading_y_max == 2}\nreading_x_max: {reading_y_max == 2} reading_x_min: {reading_x_min}\n\n")
-    if counter == 0:
-        reading_y_min = y_pos
-    elif counter == 1:
-        reading_y_max = y_pos
-    elif counter == 2:
-        reading_x_max = x_pos
-    elif counter == 3:
-        reading_x_min = x_pos
-    counter += 1
+def store_Reading(count):
+    global reading_x_max, reading_x_min, reading_y_max, reading_y_min, trigger_x, invert_trigger_x
+    if count == 1:
+        reading_y_max = y
+    elif count == 2:
+        reading_y_min = y
+    elif count == 3:
+        reading_x_max = x
+    elif count == 4:
+        reading_x_min = x
+        print("\nassigned\n")
+        trigger_x = reading_x_max * (1 + (30)/100) #sets the triggers for the eyeboard once the calibration is done
+        invert_trigger_x = reading_x_min * (1 + (-30)/100)
+        
+    #print(f"reading_y_min: {reading_y_min} reading_y_max: {reading_y_max}\nreading_x_max: {reading_x_max} reading_x_min: {reading_x_min}\ny: {y} x:{x}\n\n")
 
 def run():
     import cv2
     import mediapipe as mp
     import pyautogui
-    
-    global screen_h, screen_w, landmark_points, frame_h, frame_w, frame, Keyboard, KeyboardStr, x, y, y_distance, y_range, x_distance, x_range
+    global screen_h, screen_w, landmark_points, frame_h, frame_w, frame, Keyboard, KeyboardStr, x, y, y_distance, y_range, x_distance, x_range, y_percentage, x_percentage, postion, Current_char
     postion = 0
+    Current_char = ''
     KeyboardStr = "abc0de1fgh2ij3kln4mo5pqr56tu7vwx78z9"
     Keyboard = []
     for Char in KeyboardStr:
@@ -56,7 +61,7 @@ def run():
         if landmark_points:
             landmarks = [landmark_points[0].landmark[tracking_landmark_1], landmark_points[0].landmark[tracking_landmark_2]]
             x = (landmarks[1].x - landmarks[0].x)
-            y = (landmarks[1].y - landmarks[0].y)
+            y = (landmarks[0].y - landmarks[1].y)
             
             
             x_range = reading_x_max - reading_x_min
@@ -67,15 +72,15 @@ def run():
             y_percentage = (y_distance / y_range)
             x_pos = (screen_w * x_percentage)
             y_pos = (screen_h * y_percentage)
-            #print(f"y: y_distance: {y_distance} y_range: {y_range}\nx_distance: {x_distance} x_range: {x_range}\nreading_y_min: {reading_y_min} reading_y_max: {reading_y_max}\nreading_x_max: {reading_x_max} reading_x_min: {reading_x_min}\n\n")
+            #print(f"y_percentage: {y_percentage} x_percentage: {x_percentage}\ny_distance: {y_distance} y_range: {y_range}\nx_distance: {x_distance} x_range: {x_range}\nreading_y_min: {reading_y_min} reading_y_max: {reading_y_max}\nreading_x_max: {reading_x_max} reading_x_min: {reading_x_min}\ny_pos: {y_pos} x_pos: {x_pos}\n x: {x} y: {y}\n\n")
             
             pyautogui.FAILSAFE = False
             pyautogui.moveTo(x_pos, y_pos)
             
             for landmark in landmarks:
-                x = int(landmark.x * frame_w)
-                y = int(landmark.y * frame_h)
-                cv2.circle(frame, (x, y), 3, (0, 255, 255))       
+                x_circle = int(landmark.x * frame_w)
+                y_circle = int(landmark.y * frame_h)
+                cv2.circle(frame, (x_circle, y_circle), 3, (0, 255, 255))
             UpdateEdgeKeyboard()
             
         cv2.imshow('Eye Controlled Mouse', frame)
@@ -94,7 +99,7 @@ def StartBlinkKeyboard():
         print(isRightEyeBlinking, isLeftEyeBlinking)
         left = [landmark_points[0].landmark[145], landmark_points[0].landmark[159]]
         for landmark in left:
-            x = int(landmark.x * frame_w)
+            x_ = int(landmark.x * frame_w)
             y = int(landmark.y * frame_h)
             cv2.circle(frame, (x, y), 3, (0, 255, 255))
         if (left[0].y - left[1].y) < 0.004 and not isRightEyeBlinking:
@@ -109,8 +114,8 @@ def StartBlinkKeyboard():
 
         right = [landmark_points[0].landmark[374], landmark_points[0].landmark[386]]
         for landmark in right:
-            x = int(landmark.x * frame_w)
-            y = int(landmark.y * frame_h)
+            x_local = int(landmark.x * frame_w)
+            y_local = int(landmark.y * frame_h)
             cv2.circle(frame, (x, y), 3, (0, 255, 255))
         if (right[0].y - right[1].y) < 0.004 and not isLeftEyeBlinking:
             isRightEyeBlinking = True
@@ -120,15 +125,26 @@ def StartBlinkKeyboard():
             print(Current_char)
         elif(not isLeftEyeBlinking):
             isRightEyeBlinking = False
-            
-            
-            
+
+
+def CharacterDown():
+    postion = clamp(postion + 1, 0, len(Keyboard) - 1)
+    CurrentChar = Keyboard[postion]
+    
+def CharacterUp():
+    postion = clamp(postion - 1, 0, len(Keyboard) - 1)
+    CurrentChar = Keyboard[postion]
+
 def UpdateEdgeKeyboard():
-    import cv2
-    import mediapipe as mp
-    import pyautogui
-    import ctypes
+    global postion, trigger_x, invert_trigger_x
     CurrentChar = ''
-        
-    trigger_x = x_pos * (1 + 10/100)
-    trigger_y = y_pos * (1 + 10/100)
+    print(f"trigger_x: {trigger_x} x_percentage: {x_percentage} invert_trigger_x: {invert_trigger_x} condition 1: {x_percentage > trigger_x} condition 2: {x_percentage < invert_trigger_x}")
+    if x_percentage > trigger_x:
+        postion = clamp(postion + 1, 0, len(Keyboard) - 1)
+        CurrentChar = Keyboard[postion]
+        print(CurrentChar)
+    elif x_percentage < invert_trigger_x:
+        postion = clamp(postion - 1, 0, len(Keyboard) - 1)
+        CurrentChar = Keyboard[postion]
+        print(CurrentChar)
+    

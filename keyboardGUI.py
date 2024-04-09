@@ -1,9 +1,9 @@
 def SetCurrentChar(position):
     Char = position
+    print(position)
 
 def ShowKeyboard():
     import tkinter as tk
-    import Tracker
     window = tk.Tk()
     
     global Char

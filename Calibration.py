@@ -50,25 +50,25 @@ def Calibrate():
     image_label.place(x=(root.winfo_screenwidth() // 2 - size // 2), in_=root)
 
     tksleep(2)
-    Tracker.store_Reading()
+    Tracker.store_Reading(1)
     tksleep(1)
     
     image_label.place(x=(root.winfo_screenwidth() // 2 - size // 2), y=(root.winfo_screenheight() - size), in_=root)
     
     tksleep(2)
-    Tracker.store_Reading()
+    Tracker.store_Reading(2)
     tksleep(1)
     
     image_label.place(x=(scr_width - size), y=(scr_height // 2 - size // 2), in_=root)
     
     tksleep(2)
-    Tracker.store_Reading()
+    Tracker.store_Reading(3)
     tksleep(1)
     
     image_label.place(x=0, y=(scr_height // 2 - size // 2), in_=root)
     
     tksleep(2)
-    Tracker.store_Reading()
+    Tracker.store_Reading(4)
     tksleep(1)
     
     
