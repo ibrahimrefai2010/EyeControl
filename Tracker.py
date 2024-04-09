@@ -19,7 +19,7 @@ def clamp(value, min_value, max_value):
 
 
 def store_Reading(count):
-    global reading_x_max, reading_x_min, reading_y_max, reading_y_min, trigger_x, invert_trigger_x
+    global reading_x_max, reading_x_min, reading_y_max, reading_y_min, trigger_x, invert_trigger_x, postion
     if count == 1:
         reading_y_max = y
     elif count == 2:
@@ -29,8 +29,10 @@ def store_Reading(count):
     elif count == 4:
         reading_x_min = x
         print("\nassigned\n")
-        trigger_x = reading_x_max * (1 + (30)/100) #sets the triggers for the eyeboard once the calibration is done
-        invert_trigger_x = reading_x_min * (1 + (-30)/100)
+        time.sleep(0.1)
+        trigger_x = reading_x_max * (1 + (10)/100) #sets the triggers for the eyeboard once the calibration is done
+        invert_trigger_x = reading_x_min * (1 + (-10)/100)
+        postion = 0
         
     #print(f"reading_y_min: {reading_y_min} reading_y_max: {reading_y_max}\nreading_x_max: {reading_x_max} reading_x_min: {reading_x_min}\ny: {y} x:{x}\n\n")
 
@@ -138,12 +140,12 @@ def CharacterUp():
 def UpdateEdgeKeyboard():
     global postion, trigger_x, invert_trigger_x
     CurrentChar = ''
-    print(f"trigger_x: {trigger_x} x_percentage: {x_percentage} invert_trigger_x: {invert_trigger_x} condition 1: {x_percentage > trigger_x} condition 2: {x_percentage < invert_trigger_x}")
-    if x_percentage > trigger_x:
+    print(f"trigger_x: {trigger_x} x: {x} invert_trigger_x: {invert_trigger_x} condition 1: {x > trigger_x} condition 2: {x < invert_trigger_x}")
+    if x > trigger_x:
         postion = clamp(postion + 1, 0, len(Keyboard) - 1)
         CurrentChar = Keyboard[postion]
         print(CurrentChar)
-    elif x_percentage < invert_trigger_x:
+    elif x < invert_trigger_x:
         postion = clamp(postion - 1, 0, len(Keyboard) - 1)
         CurrentChar = Keyboard[postion]
         print(CurrentChar)
