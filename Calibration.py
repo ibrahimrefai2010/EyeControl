@@ -75,8 +75,8 @@ def Calibrate():
     
     root.destroy()
     
-    KeyboardThread = threading.Thread(target=keyboardGUI.ShowKeyboard)
-    KeyboardThread.start()
+    keyboardGUI.ShowKeyboard()
+    Tracker.calibration = False
 
 
 

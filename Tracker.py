@@ -1,4 +1,4 @@
-import keyboardGUI
+import keyboardGUI as GUI
 import time
 global reading_x_max, reading_x_min, reading_y_max, reading_y_min
 reading_y_min = 1 #each one has a unique value to prevent zero division 
@@ -11,19 +11,24 @@ tracking_landmark_1 = 337
 tracking_landmark_2 = 473
 trigger_x = 0
 invert_trigger_x = 0
-calibration = False
+calibration = True
 
 def clamp(value, min_value, max_value):
-    return max(min(value, max_value), min_value)
+    if value < min_value:
+        return min_value
+    elif value > max_value:
+        return max_value
+    else:
+        return value
 
 
 
 def store_Reading(count):
     global reading_x_max, reading_x_min, reading_y_max, reading_y_min, trigger_x, invert_trigger_x, postion
     if count == 1:
-        reading_y_max = y
-    elif count == 2:
         reading_y_min = y
+    elif count == 2:
+        reading_y_max = y
     elif count == 3:
         reading_x_max = x
     elif count == 4:
@@ -44,7 +49,7 @@ def run():
     postion = 0
     Current_char = ''
     KeyboardStr = "abc0de1fgh2ij3kln4mo5pqr56tu7vwx78z9"
-    Keyboard = []
+    Keyboard = ["delete", "enter", "backspace"]
     for Char in KeyboardStr:
         Keyboard.append(Char)
     
@@ -63,7 +68,7 @@ def run():
         if landmark_points:
             landmarks = [landmark_points[0].landmark[tracking_landmark_1], landmark_points[0].landmark[tracking_landmark_2]]
             x = (landmarks[1].x - landmarks[0].x)
-            y = (landmarks[0].y - landmarks[1].y)
+            y = (landmarks[1].y - landmarks[0].y)
             
             
             x_range = reading_x_max - reading_x_min
@@ -83,7 +88,8 @@ def run():
                 x_circle = int(landmark.x * frame_w)
                 y_circle = int(landmark.y * frame_h)
                 cv2.circle(frame, (x_circle, y_circle), 3, (0, 255, 255))
-            UpdateEdgeKeyboard()
+            if calibration == False:
+                UpdateEdgeKeyboard()
             
         cv2.imshow('Eye Controlled Mouse', frame)
         cv2.waitKey(1)
@@ -102,8 +108,8 @@ def StartBlinkKeyboard():
         left = [landmark_points[0].landmark[145], landmark_points[0].landmark[159]]
         for landmark in left:
             x_ = int(landmark.x * frame_w)
-            y = int(landmark.y * frame_h)
-            cv2.circle(frame, (x, y), 3, (0, 255, 255))
+            y_ = int(landmark.y * frame_h)
+            cv2.circle(frame, (x_, y_), 3, (0, 255, 255))
         if (left[0].y - left[1].y) < 0.004 and not isRightEyeBlinking:
             isLeftEyeBlinking = True
             postion = max(len(Keyboard), min((postion - 1), 0))
@@ -130,24 +136,33 @@ def StartBlinkKeyboard():
 
 
 def CharacterDown():
+    global postion, CurrentChar
     postion = clamp(postion + 1, 0, len(Keyboard) - 1)
     CurrentChar = Keyboard[postion]
-    keyboardGUI.SetCurrentChar(postion)
+    print(f"calling: {postion}")
+    GUI.SetCurrentChar(CurrentChar)
     
 def CharacterUp():
-    postion = clamp(postion - 1, 0, len(Keyboard) - 1)
-    CurrentChar = Keyboard[postion]
-    keyboardGUI.SetCurrentChar(postion)
+    global postion, CurrentChar
+    try:
+        postion = clamp(postion - 1, 0, len(Keyboard) - 1)
+        CurrentChar = Keyboard[postion]
+        GUI.SetCurrentChar(CurrentChar)
+    except:
+        print(f"{Exception} in CharacterUp")
     
 
 def UpdateEdgeKeyboard():
+    import pyautogui
     global postion, trigger_x, invert_trigger_x
     CurrentChar = ''
-    print(f"trigger_x: {trigger_x} x: {x} invert_trigger_x: {invert_trigger_x} condition 1: {x > trigger_x} condition 2: {x < invert_trigger_x}")
+    #print(f"trigger_x: {trigger_x} x: {x} invert_trigger_x: {invert_trigger_x} condition 1: {x > trigger_x} condition 2: {x < invert_trigger_x}")
     if x > trigger_x:
-        postion = clamp(postion + 1, 0, len(Keyboard) - 1)
-        CurrentChar = Keyboard[postion]
-    elif x < invert_trigger_x:
-        postion = clamp(postion - 1, 0, len(Keyboard) - 1)
-        CurrentChar = Keyboard[postion]
+        CharacterUp()
+    if x < invert_trigger_x:
+        CharacterDown()
+    print(y, (reading_y_min * 0.1) ,y < (reading_y_min * 0.1))
     
+    if y < (reading_y_min * 0.1):
+        pyautogui.press(CurrentChar)
+        print(f"typing  {CurrentChar}")
