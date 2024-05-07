@@ -75,8 +75,8 @@ def Calibrate():
     
     root.destroy()
     
-    keyboardGUI.ShowKeyboard()
     Tracker.calibration = False
+    keyboardGUI.ShowKeyboard()
 
 
 

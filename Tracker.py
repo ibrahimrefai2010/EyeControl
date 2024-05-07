@@ -1,5 +1,6 @@
 import keyboardGUI as GUI
 import time
+import pyautogui
 global reading_x_max, reading_x_min, reading_y_max, reading_y_min
 reading_y_min = 1 #each one has a unique value to prevent zero division 
 reading_y_max = 2
@@ -90,11 +91,11 @@ def run():
                 cv2.circle(frame, (x_circle, y_circle), 3, (0, 255, 255))
             if calibration == False:
                 UpdateEdgeKeyboard()
-            
+        print(calibration)
         cv2.imshow('Eye Controlled Mouse', frame)
         cv2.waitKey(1)
 
-
+'''
 def StartBlinkKeyboard():
     import cv2
     import mediapipe as mp
@@ -113,8 +114,8 @@ def StartBlinkKeyboard():
         if (left[0].y - left[1].y) < 0.004 and not isRightEyeBlinking:
             isLeftEyeBlinking = True
             postion = max(len(Keyboard), min((postion - 1), 0))
-            Current_char = Keyboard[postion]
-            print(Current_char)
+            CurrentChar = Keyboard[postion]
+            print(CurrentChar)
         elif(not isRightEyeBlinking):
             isLeftEyeBlinking = False
 
@@ -129,40 +130,39 @@ def StartBlinkKeyboard():
             isRightEyeBlinking = True
             postion = clamp(postion + 1, 0, len(Keyboard) - 1)
             print(postion)
-            Current_char = Keyboard[postion]
-            print(Current_char)
+            CurrentChar = Keyboard[postion]
+            print(CurrentChar)
         elif(not isLeftEyeBlinking):
             isRightEyeBlinking = False
-
+'''
 
 def CharacterDown():
     global postion, CurrentChar
-    postion = clamp(postion + 1, 0, len(Keyboard) - 1)
+    postion = clamp(postion - 1, 0, len(Keyboard) - 1)
     CurrentChar = Keyboard[postion]
     print(f"calling: {postion}")
     GUI.SetCurrentChar(CurrentChar)
     
 def CharacterUp():
     global postion, CurrentChar
-    try:
-        postion = clamp(postion - 1, 0, len(Keyboard) - 1)
-        CurrentChar = Keyboard[postion]
-        GUI.SetCurrentChar(CurrentChar)
-    except:
-        print(f"{Exception} in CharacterUp")
+    postion = clamp(postion + 1, 0, len(Keyboard) - 1)
+    CurrentChar = Keyboard[postion]
+    print(f"calling: {postion}")
+    GUI.SetCurrentChar(CurrentChar)
     
 
 def UpdateEdgeKeyboard():
-    import pyautogui
-    global postion, trigger_x, invert_trigger_x
+    global postion, trigger_x, invert_trigger_x, CurrentChar
     CurrentChar = ''
+    typing_deadzone = 1
+    
     #print(f"trigger_x: {trigger_x} x: {x} invert_trigger_x: {invert_trigger_x} condition 1: {x > trigger_x} condition 2: {x < invert_trigger_x}")
+    print(y, (reading_y_min * typing_deadzone) ,y < (reading_y_min * typing_deadzone))
     if x > trigger_x:
         CharacterUp()
     if x < invert_trigger_x:
         CharacterDown()
-    print(y, (reading_y_min * 0.1) ,y < (reading_y_min * 0.1))
     
-    if y < (reading_y_min * 0.1):
+    if y < (reading_y_min * typing_deadzone):
         pyautogui.press(CurrentChar)
         print(f"typing  {CurrentChar}")

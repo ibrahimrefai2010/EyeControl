@@ -7,5 +7,4 @@ GUIThread = threading.Thread(target=Calibration.Calibrate)
 GUIThread.start()
 
 
-
 Tracker.run()

@@ -1,9 +1,13 @@
 def SetCurrentChar(_Char):
-    global BtnDict, Char
-    print(f"called: {_Char}")
-    BtnDict[_Char].configure(bg='blue')
-    BtnDict[Char].configure(bg='white')
-    Char = _Char
+    try:
+        global BtnDict, Char
+        print(f"called: {_Char}")
+        BtnDict[_Char].configure(bg='blue')
+        BtnDict[Char].configure(bg='white')
+        Char = _Char
+    except Exception:
+        print(Exception)
+
 
 def ShowKeyboard():
     import tkinter as tk
@@ -14,9 +18,14 @@ def ShowKeyboard():
     BtnDict = {}
     KeyboardStr = "abc0de1fgh2ij3kln4mo5pqr56tu7vwx78z9"
     Keyboard = ["delete", "enter", "backspace"]
+    
     for i in KeyboardStr:
         Keyboard.append(i)
-        BtnDict.update({Keyboard[i] : tk.Label(window, text=Keyboard[i], font=("Arial", 10))})
-        BtnDict[Keyboard[i]].pack()
     
+    
+    for i in Keyboard:
+        BtnDict.update({i : tk.Label(window, text=i, font=("Arial", 10))})
+        BtnDict[i].pack()
+        
+    print(f"data: {BtnDict} {Keyboard}")
     window.mainloop()
